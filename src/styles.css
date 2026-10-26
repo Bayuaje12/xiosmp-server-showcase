@@ -132,13 +132,88 @@
   --sidebar-ring: oklch(0.551 0.027 264.364);
 }
 
-@layer base {
-  * {
-    border-color: var(--color-border);
-  }
+/* XioSMP dark neumorphism */
+:root {
+  --background: oklch(0.155 0.014 300);
+  --foreground: oklch(0.94 0.02 300);
+  --card: oklch(0.175 0.016 300);
+  --card-foreground: oklch(0.94 0.02 300);
+  --popover: oklch(0.175 0.016 300);
+  --popover-foreground: oklch(0.94 0.02 300);
+  --primary: oklch(0.66 0.24 303);
+  --primary-foreground: oklch(0.98 0.01 300);
+  --primary-glow: oklch(0.78 0.18 310);
+  --muted: oklch(0.2 0.018 300);
+  --muted-foreground: oklch(0.68 0.04 300);
+  --accent: oklch(0.22 0.03 300);
+  --accent-foreground: oklch(0.94 0.02 300);
+  --border: oklch(0.24 0.02 300);
+  --success: oklch(0.75 0.18 150);
+  --nm-dark: oklch(0.09 0.01 300);
+  --nm-light: oklch(0.24 0.02 300);
+  --shadow-nm: 8px 8px 18px var(--nm-dark), -6px -6px 16px var(--nm-light);
+  --shadow-nm-sm: 4px 4px 9px var(--nm-dark), -3px -3px 8px var(--nm-light);
+  --shadow-nm-inset: inset 5px 5px 12px var(--nm-dark), inset -4px -4px 10px var(--nm-light);
+  --glow: 0 0 24px color-mix(in oklab, var(--primary) 45%, transparent);
+  --font-display: "Lilita One", cursive;
+  --font-body: "Outfit", sans-serif;
+}
+@theme inline {
+  --color-primary-glow: var(--primary-glow);
+  --color-success: var(--success);
+  --font-display: var(--font-display);
+  --font-sans: var(--font-body);
+}
 
+@utility nm {
+  background: var(--background);
+  box-shadow: var(--shadow-nm);
+  border-radius: 1.25rem;
+}
+@utility nm-inset {
+  background: var(--background);
+  box-shadow: var(--shadow-nm-inset);
+  border-radius: 1rem;
+}
+@utility nm-btn {
+  background: var(--background);
+  box-shadow: var(--shadow-nm-sm);
+  border-radius: 9999px;
+  transition: box-shadow .25s ease, color .25s ease, transform .15s ease;
+  &:hover { box-shadow: var(--shadow-nm-inset); color: var(--primary-glow); }
+  &:active { transform: scale(.97); }
+}
+@utility nm-btn-primary {
+  background: linear-gradient(135deg, var(--primary), var(--primary-glow));
+  color: var(--primary-foreground);
+  border-radius: 9999px;
+  box-shadow: var(--shadow-nm-sm), var(--glow);
+  transition: box-shadow .25s ease, transform .15s ease, filter .25s;
+  &:hover { box-shadow: inset 4px 4px 10px oklch(0.35 0.2 303), inset -3px -3px 8px oklch(0.85 0.15 310); }
+  &:active { transform: scale(.97); }
+}
+@utility nm-card {
+  background: var(--background);
+  box-shadow: var(--shadow-nm);
+  border-radius: 1.5rem;
+  transition: box-shadow .35s ease, transform .35s ease;
+  &:hover { box-shadow: var(--shadow-nm-inset); transform: translateY(2px); }
+}
+@utility text-glow {
+  color: var(--primary-glow);
+  text-shadow: 0 0 18px color-mix(in oklab, var(--primary) 70%, transparent);
+}
+@utility fade-up {
+  animation: fadeUp .8s ease both;
+}
+@keyframes fadeUp { from { opacity: 0; transform: translateY(24px);} to { opacity: 1; transform: none; } }
+
+@layer base {
+  * { border-color: var(--color-border); }
+  html { scroll-behavior: smooth; }
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+    font-family: var(--font-body);
   }
 }

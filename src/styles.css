@@ -217,3 +217,36 @@
     font-family: var(--font-body);
   }
 }
+
+/* Animations */
+@utility particle {
+  position: absolute;
+  bottom: -20px;
+  border-radius: 9999px;
+  background: radial-gradient(circle, var(--primary-glow), var(--primary) 60%, transparent 70%);
+  box-shadow: 0 0 10px var(--primary);
+  opacity: 0;
+  animation: rise linear infinite;
+}
+@utility blob {
+  position: absolute;
+  width: 60vw; height: 60vw; max-width: 640px; max-height: 640px;
+  border-radius: 9999px;
+  background: radial-gradient(circle, color-mix(in oklab, var(--primary) 22%, transparent), transparent 70%);
+  filter: blur(40px);
+  animation: drift 22s ease-in-out infinite;
+}
+@utility float { animation: floaty 5s ease-in-out infinite, fadeUp .8s ease both; }
+@utility glow-ring { animation: glowPulse 4s ease-in-out infinite, fadeUp .8s ease both; }
+@utility reveal { animation: fadeUp .7s ease both; animation-timeline: view(); animation-range: entry 0% entry 60%; }
+@keyframes rise {
+  0% { transform: translate(0,0) scale(.6); opacity: 0; }
+  15% { opacity: .9; }
+  100% { transform: translate(30px,-110vh) scale(1.1); opacity: 0; }
+}
+@keyframes drift { 0%,100% { transform: translate(0,0); } 50% { transform: translate(12vw,-8vh) scale(1.15); } }
+@keyframes floaty { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+@keyframes glowPulse { 0%,100% { box-shadow: var(--shadow-nm); } 50% { box-shadow: var(--shadow-nm), 0 0 30px color-mix(in oklab, var(--primary) 30%, transparent); } }
+@keyframes btnGlow { 0%,100% { box-shadow: var(--shadow-nm-sm), 0 0 12px color-mix(in oklab, var(--primary) 30%, transparent); } 50% { box-shadow: var(--shadow-nm-sm), 0 0 26px color-mix(in oklab, var(--primary) 65%, transparent); } }
+.nm-btn-primary:hover, .nm-btn:hover { animation: btnGlow 1.6s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .particle, .blob { animation: none; display: none; } }

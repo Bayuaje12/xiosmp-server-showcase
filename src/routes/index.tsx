@@ -207,10 +207,10 @@ function Index() {
         <div className="flex-1 text-center lg:text-left">
           <img src={logo.url} alt="XioSMP" className="nm fade-up float mx-auto mb-6 h-24 w-24 object-cover p-1.5 lg:hidden" />
           <p className="fade-up text-xs font-semibold uppercase tracking-[.3em] text-primary-glow">Economy SMP</p>
-          <h1 className="fade-up mt-2 font-display text-3xl leading-tight sm:text-4xl lg:text-6xl" style={{ animationDelay: ".1s" }}">
+          <h1 className="fade-up mt-2 font-display text-3xl leading-tight sm:text-4xl lg:text-6xl" style={{ animationDelay: ".1s" }}>
             WELCOME TO <span className="text-glow">XIOSMP</span> OFFICIAL
           </h1>
-          <p className="fade-up mt-3 text-sm text-muted-foreground md:text-base" style={{ animationDelay: ".2s" }}">Server Minecraft Economy SMP Terbaru, Seru, &amp; Paling OP!</p>
+          <p className="fade-up mt-3 text-sm text-muted-foreground md:text-base" style={{ animationDelay: ".2s" }}>Server Minecraft Economy SMP Terbaru, Seru, &amp; Paling OP!</p>
           <div className="fade-up mt-6 flex flex-wrap justify-center gap-3" style={{ animationDelay: ".3s" }} lg:justify-start">
             <button onClick={() => copy(IP)} className="nm-btn-primary flex items-center gap-2 px-5 py-2.5 text-sm font-semibold"><Copy className="h-4 w-4" /> Copy IP Java</button>
             <button onClick={() => copy(`${IP}:2005`)} className="nm-btn flex items-center gap-2 px-5 py-2.5 text-sm font-semibold"><Copy className="h-4 w-4" /> Copy IP Bedrock</button>

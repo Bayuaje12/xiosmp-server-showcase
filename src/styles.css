@@ -248,5 +248,5 @@
 @keyframes floaty { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
 @keyframes glowPulse { 0%,100% { box-shadow: var(--shadow-nm); } 50% { box-shadow: var(--shadow-nm), 0 0 30px color-mix(in oklab, var(--primary) 30%, transparent); } }
 @keyframes btnGlow { 0%,100% { box-shadow: var(--shadow-nm-sm), 0 0 12px color-mix(in oklab, var(--primary) 30%, transparent); } 50% { box-shadow: var(--shadow-nm-sm), 0 0 26px color-mix(in oklab, var(--primary) 65%, transparent); } }
-.nm-btn-primary:hover, .nm-btn:hover { animation: btnGlow 1.6s ease-in-out infinite; }
+.nm-btn-primary:hover { animation: btnGlow 1.6s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) { .particle, .blob { animation: none; display: none; } }

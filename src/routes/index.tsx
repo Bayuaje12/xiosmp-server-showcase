@@ -3,8 +3,9 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
   Copy, Gamepad2, Smartphone, Package, Swords, Coins, MapPinned, Crown, Shield, ShieldCheck,
-  ChevronDown, Menu, X, MessageCircle, Music2, Globe, Users,
+  ChevronDown, Menu, X, MessageCircle, Music2, Globe, Users, RefreshCw, Gift,
 } from "lucide-react";
+import { bansosState } from "@/lib/bansos";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -24,7 +25,7 @@ const LOGO_PATH = "/xiosmp-logo.jpg"; // Mengarah langsung ke folder public
 
 const nav = [
   ["Home", "home"], ["Koneksi", "koneksi"], ["Newbie Perks", "perks"],
-  ["Staff", "staff"], ["Peraturan", "rules"], ["Sosial Media", "sosial"],
+  ["Bansos", "bansos"], ["Staff", "staff"], ["Peraturan", "rules"], ["Sosial Media", "sosial"],
 ] as const;
 
 function copy(text: string) {
@@ -32,65 +33,58 @@ function copy(text: string) {
 }
 
 type Player = { name: string };
-type Status = { online: boolean; count: number; max: number | null; players: Player[]; hidden: boolean };
+type Status = { online: boolean; count: number; max: number | null; players: Player[] };
 
-const VALID = /^[.*]?[A-Za-z0-9_ ]{1,20}$/;
 const clean = (n: string) => n.replace(/\u00a7./g, "").trim();
+const VALID = /^[.*]?[A-Za-z0-9_]{1,20}$/;
+
+function parse(data: any): Status | null {
+  if (!data?.online) return null;
+  const pl = data.players ?? {};
+  const raw = [...(Array.isArray(pl.list) ? pl.list : []), ...(Array.isArray(pl.sample) ? pl.sample : [])];
+  const seen = new Map<string, Player>();
+  raw.forEach((p: any) => {
+    const n = clean(typeof p === "string" ? p : p?.name_clean ?? p?.name ?? p?.name_raw ?? "");
+    if (VALID.test(n)) seen.set(n.toLowerCase(), { name: n });
+  });
+  return { online: true, count: pl.online ?? 0, max: pl.max ?? null, players: [...seen.values()] };
+}
 
 async function fetchStatus(): Promise<Status> {
-  const out: Status = { online: false, count: 0, max: null, players: [], hidden: false };
-  const seen = new Map<string, Player>();
-  const add = (raw?: string) => {
-    if (!raw) return;
-    const n = clean(raw);
-    if (VALID.test(n) && !n.includes(" ")) seen.set(n.toLowerCase(), { name: n });
-  };
-  const [a, b, c] = await Promise.allSettled([
-    fetch(`https://api.mcstatus.io/v2/status/java/${IP}`).then((r) => r.json()),
-    fetch(`https://api.mcsrvstat.us/3/${IP}`).then((r) => r.json()),
-    fetch(`https://api.mcsrvstat.us/bedrock/3/${IP}:2005`).then((r) => r.json()),
-  ]);
-  if (a.status === "fulfilled" && a.value?.online) {
-    out.online = true;
-    out.count = Math.max(out.count, a.value.players?.online ?? 0);
-    out.max = a.value.players?.max ?? out.max;
-    (a.value.players?.list ?? []).forEach((p: { name_clean?: string; name_raw?: string }) => add(p.name_clean ?? p.name_raw));
+  let best: Status | null = null;
+  for (const url of [`https://api.mcsrvstat.us/3/${IP}`, `https://api.mcstatus.io/v2/status/java/${IP}`]) {
+    try {
+      const s = parse(await fetch(url, { cache: "no-store" }).then((r) => r.json()));
+      if (s) {
+        if (s.players.length) return s;
+        best ??= s;
+      }
+    } catch { /* try next */ }
   }
-  for (const r of [b, c]) {
-    if (r.status === "fulfilled" && r.value?.online) {
-      out.online = true;
-      out.count = Math.max(out.count, r.value.players?.online ?? 0);
-      out.max = out.max ?? r.value.players?.max ?? null;
-      const pl = r.value.players ?? {};
-      [...(pl.list ?? []), ...(pl.sample ?? [])].forEach((p: string | { name?: string }) => add(typeof p === "string" ? p : p.name));
-    }
-  }
-  out.players = [...seen.values()];
-  out.hidden = out.count > 0 && out.players.length === 0;
-  return out;
+  return best ?? { online: false, count: 0, max: null, players: [] };
 }
 
 function Head({ name }: { name: string }) {
   const [err, setErr] = useState(false);
   const n = name.replace(/^[.*]/, "");
-  if (err) return <span className="grid h-7 w-7 shrink-0 place-items-center rounded-md bg-primary text-xs font-bold text-primary-foreground">{n[0]?.toUpperCase()}</span>;
-  return <img src={`https://mc-heads.net/avatar/${n}/32`} alt="" onError={() => setErr(true)} className="h-7 w-7 shrink-0 rounded-md" loading="lazy" />;
+  if (err) return <span className="grid h-6 w-6 shrink-0 place-items-center rounded-md bg-primary text-xs font-bold text-primary-foreground">{n[0]?.toUpperCase()}</span>;
+  return <img src={`https://mc-heads.net/avatar/${n}/32`} alt="" onError={() => setErr(true)} className="h-6 w-6 shrink-0 rounded-md" loading="lazy" />;
 }
 
 function LiveStatus() {
   const [s, setS] = useState<Status | null>(null);
+  const [busy, setBusy] = useState(false);
+  const load = () => { setBusy(true); return fetchStatus().then(setS).finally(() => setBusy(false)); };
   useEffect(() => {
-    let alive = true;
-    const load = () => fetchStatus().then((d) => alive && setS(d));
     load();
     const t = setInterval(load, 30000);
-    return () => { alive = false; clearInterval(t); };
+    return () => clearInterval(t);
   }, []);
   const list = s?.players ?? [];
   return (
-    <div className="nm glow-ring w-full max-w-sm p-5 fade-up" style={{ animationDelay: ".3s" }}>
+    <div className="nm glow-ring w-full max-w-sm p-4 fade-up" style={{ animationDelay: ".3s" }}>
       <div className="flex items-center justify-between">
-        <span className="text-xs uppercase tracking-widest text-muted-foreground">Live Status</span>
+        <span className="text-[10px] uppercase tracking-widest text-muted-foreground">Live Status</span>
         <span className="nm-inset flex items-center gap-2 px-3 py-1 text-xs font-semibold">
           <span className={`h-2 w-2 rounded-full ${s === null ? "bg-muted-foreground animate-pulse" : s.online ? "bg-success animate-pulse" : "bg-destructive"}`} />
           {s === null ? "Mengecek..." : s.online ? "Online" : "Offline"}
@@ -98,25 +92,61 @@ function LiveStatus() {
       </div>
       <div className="mt-3 flex items-end gap-2">
         <Users className="mb-1 h-4 w-4 text-primary-glow" />
-        <span className="font-display text-3xl leading-none text-glow">{s?.count ?? 0}</span>
-        <span className="text-sm text-muted-foreground">/ {s?.max ?? "–"} player online</span>
+        <span className="font-display text-2xl leading-none text-glow">{s?.count ?? 0}</span>
+        <span className="text-xs text-muted-foreground">/ {s?.max ?? "–"} player online</span>
       </div>
-      <div className="nm-inset mt-4 max-h-40 overflow-y-auto p-3">
+      <div className="nm-inset mt-3 max-h-40 overflow-y-auto p-3">
         {list.length ? (
           <ul className="grid grid-cols-2 gap-2">
             {list.map((p, i) => (
-              <li key={p.name} className="fade-up flex min-w-0 items-center gap-2 text-sm" style={{ animationDelay: `${i * 60}ms` }}>
+              <li key={p.name} className="fade-up flex min-w-0 items-center gap-2 text-xs" style={{ animationDelay: `${i * 60}ms` }}>
                 <Head name={p.name} />
                 <span className="truncate">{p.name}</span>
               </li>
             ))}
           </ul>
         ) : (
-          <p className="text-center text-xs text-muted-foreground">
-            {s === null ? "Memuat..." : s.hidden ? `${s.count} pemain sedang bermain — nama disembunyikan oleh server.` : s.online ? "Belum ada pemain online." : "Server sedang offline."}
-          </p>
+          <div className="text-center text-xs text-muted-foreground">
+            <p>
+              {s === null ? "Memuat..." : !s.online ? "Server sedang offline." : s.count > 0 ? `${s.count} pemain sedang bermain, tapi server tidak membagikan nama pemain.` : "Belum ada pemain online."}
+            </p>
+            <button onClick={load} disabled={busy} className="nm-btn mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-semibold disabled:opacity-60">
+              <RefreshCw className={`h-3 w-3 ${busy ? "animate-spin" : ""}`} /> Refresh Status
+            </button>
+          </div>
         )}
       </div>
+    </div>
+  );
+}
+
+function Bansos() {
+  const [now, setNow] = useState<Date | null>(null);
+  useEffect(() => {
+    setNow(new Date());
+    const t = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(t);
+  }, []);
+  const st = now ? bansosState(now) : null;
+  const sec = st ? Math.floor(st.msLeft / 1000) : 0;
+  const parts = [["Hari", Math.floor(sec / 86400)], ["Jam", Math.floor(sec / 3600) % 24], ["Menit", Math.floor(sec / 60) % 60], ["Detik", sec % 60]] as const;
+  return (
+    <div className="nm-card glow-ring reveal mx-auto max-w-2xl p-4 text-center md:p-6">
+      <div className="nm-inset mx-auto grid h-12 w-12 place-items-center rounded-2xl"><Gift className="h-6 w-6 text-primary-glow" /></div>
+      <h3 className="mt-3 font-display text-lg md:text-xl">Event Bansos Rutin XioSMP 🎁</h3>
+      <p className="mt-1 text-xs text-muted-foreground md:text-sm">Setiap Malam Jumat (Kamis) pukul 19:00 WIB · oleh Admin @rasya</p>
+      {st?.live ? (
+        <p className="nm-btn-primary mt-4 inline-block animate-pulse px-4 py-2.5 text-xs font-bold md:text-sm">🔥 EVENT BANSOS SEDANG BERLANGSUNG! JOIN SEKARANG!</p>
+      ) : (
+        <div className="mt-4 grid grid-cols-4 gap-2 md:gap-3">
+          {parts.map(([l, v]) => (
+            <div key={l} className="nm-inset px-1 py-2.5">
+              <p className="font-display text-xl leading-none text-glow md:text-3xl">{st ? String(v).padStart(2, "0") : "--"}</p>
+              <p className="mt-1 text-[10px] uppercase tracking-wider text-muted-foreground">{l}</p>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -139,10 +169,10 @@ function Particles() {
 
 function Section({ id, title, sub, children }: { id: string; title: string; sub?: string; children: React.ReactNode }) {
   return (
-    <section id={id} className="mx-auto max-w-6xl scroll-mt-24 px-5 py-14 md:py-20">
-      <h2 className="text-center font-display text-2xl tracking-wide md:text-4xl">{title}</h2>
+    <section id={id} className="mx-auto max-w-6xl scroll-mt-24 px-5 py-10 md:py-16">
+      <h2 className="text-center font-display text-xl tracking-wide md:text-3xl">{title}</h2>
       {sub && <p className="mt-2 text-center text-sm text-muted-foreground md:text-base">{sub}</p>}
-      <div className="mt-8 md:mt-12">{children}</div>
+      <div className="mt-6 md:mt-10">{children}</div>
     </section>
   );
 }
@@ -207,7 +237,7 @@ function Index() {
         <div className="flex-1 text-center lg:text-left">
           <img src={LOGO_PATH} alt="XioSMP" className="nm fade-up float mx-auto mb-6 h-24 w-24 object-cover p-1.5 lg:hidden" />
           <p className="fade-up text-xs font-semibold uppercase tracking-[.3em] text-primary-glow">Economy SMP</p>
-          <h1 className="fade-up mt-2 font-display text-3xl leading-tight sm:text-4xl lg:text-6xl" style={{ animationDelay: ".1s" }}>
+          <h1 className="fade-up mt-2 font-display text-2xl leading-tight sm:text-3xl lg:text-5xl" style={{ animationDelay: ".1s" }}>
             WELCOME TO <span className="text-glow">XIOSMP</span> OFFICIAL
           </h1>
           <p className="fade-up mt-3 text-sm text-muted-foreground md:text-base" style={{ animationDelay: ".2s" }}>Server Minecraft Economy SMP Terbaru, Seru, &amp; Paling OP!</p>
@@ -225,7 +255,7 @@ function Index() {
             { icon: Gamepad2, t: "Java Edition", rows: [["IP", IP], ["Versi", "26.3 - 1.21.11"]], c: IP },
             { icon: Smartphone, t: "Bedrock / MCPE / HP / Console", rows: [["IP", IP], ["Port", "2005"], ["Versi", "Latest"]], c: IP },
           ].map((k) => (
-            <div key={k.t} className="nm-card reveal p-5 md:p-7">
+            <div key={k.t} className="nm-card reveal p-4 md:p-6">
               <div className="flex items-center gap-4">
                 <div className="nm-inset grid h-12 w-12 shrink-0 place-items-center"><k.icon className="h-6 w-6 text-primary-glow" /></div>
                 <h3 className="font-display text-lg md:text-xl">{k.t}</h3>
@@ -247,7 +277,7 @@ function Index() {
       <Section id="perks" title="Newbie Perks" sub="Bonus spesial untuk setiap pemain baru XioSMP.">
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {perks.map((p) => (
-            <div key={p.t} className="nm-card reveal p-5 text-center">
+            <div key={p.t} className="nm-card reveal p-4 md:p-5 text-center">
               <div className="nm-inset mx-auto grid h-14 w-14 place-items-center rounded-2xl"><p.icon className="h-7 w-7 text-primary-glow" /></div>
               <h3 className="mt-4 font-display text-lg">{p.t}</h3>
               <p className="mt-2 text-sm text-muted-foreground">{p.d}</p>
@@ -256,10 +286,14 @@ function Index() {
         </div>
       </Section>
 
+      <Section id="bansos" title="Event Bansos" sub="Hitung mundur menuju bagi-bagi hadiah mingguan.">
+        <Bansos />
+      </Section>
+
       <Section id="staff" title="Structure Management" sub="Tim yang menjaga XioSMP tetap seru & aman.">
         <div className="grid gap-6 md:grid-cols-3">
           {staff.map((s) => (
-            <div key={s.name} className="nm-card reveal p-5 md:p-7 text-center">
+            <div key={s.name} className="nm-card reveal p-4 md:p-6 text-center">
               <img src={`https://mc-heads.net/avatar/${s.name.slice(1)}/80`} alt={s.name} className="nm mx-auto h-16 w-16 rounded-2xl p-1.5" />
               <span className="nm-inset mt-5 inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold text-primary-glow"><s.icon className="h-3.5 w-3.5" /> {s.role}</span>
               <h3 className="mt-3 font-display text-xl">{s.name}</h3>

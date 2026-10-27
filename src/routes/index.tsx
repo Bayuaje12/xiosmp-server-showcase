@@ -242,7 +242,7 @@ function Index() {
           </h1>
           <p className="fade-up mt-3 text-sm text-muted-foreground md:text-base" style={{ animationDelay: ".2s" }}>Server Minecraft Economy SMP Terbaru, Seru, &amp; Paling OP!</p>
           <div className="fade-up mt-6 flex flex-wrap justify-center gap-3 lg:justify-start" style={{ animationDelay: ".3s" }}>
-            <button onClick={() => copy(IP)} className="nm-btn-primary glow-pulse flex items-center gap-2 px-5 py-2.5 text-sm font-semibold"><Copy className="h-4 w-4" /> Copy IP Java</button>
+            <button onClick={() => copy(IP)} className="nm-btn-primary flex items-center gap-2 px-5 py-2.5 text-sm font-semibold"><Copy className="h-4 w-4" /> Copy IP Java</button>
             <button onClick={() => copy(`${IP}:2005`)} className="nm-btn flex items-center gap-2 px-5 py-2.5 text-sm font-semibold"><Copy className="h-4 w-4" /> Copy IP Bedrock</button>
           </div>
         </div>

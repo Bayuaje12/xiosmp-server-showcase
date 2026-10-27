@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
   Copy, Gamepad2, Smartphone, Package, Swords, Coins, MapPinned, Crown, Shield, ShieldCheck,
-  ChevronDown, Menu, X, MessageCircle, Music2, Globe, Users, RefreshCw, Gift,
+  ChevronDown, Menu, X, MessageCircle, Music2, Users, RefreshCw, Gift, Sun, Moon,
 } from "lucide-react";
 import { bansosState } from "@/lib/bansos";
 
@@ -108,7 +108,7 @@ function LiveStatus() {
         ) : (
           <div className="text-center text-xs text-muted-foreground">
             <p>
-              {s === null ? "Memuat..." : !s.online ? "Server sedang offline." : s.count > 0 ? `${s.count} pemain sedang bermain, tapi server tidak membagikan nama pemain.` : "Belum ada pemain online."}
+              {s === null ? "Memuat..." : !s.online ? "Server sedang offline." : s.count > 0 ? `Server menyembunyikan nama pemain demi privasi, tapi ${s.count} pemain sedang seru bermain! 🎮` : "Belum ada pemain online."}
             </p>
             <button onClick={load} disabled={busy} className="nm-btn mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-semibold disabled:opacity-60">
               <RefreshCw className={`h-3 w-3 ${busy ? "animate-spin" : ""}`} /> Refresh Status
@@ -198,8 +198,27 @@ const socials = [
   { icon: MessageCircle, t: "Discord", d: "discord.gg/5zTzZTJwU", href: DISCORD },
   { icon: Music2, t: "TikTok", d: "@xiosmp", href: "https://www.tiktok.com/@xiosmp" },
   { icon: Users, t: "Grup WhatsApp", d: "Gabung komunitas", href: "https://xiosmp.vercel.app" },
-  { icon: Globe, t: "Website", d: "xiosmp.vercel.app", href: "https://xiosmp.vercel.app" },
 ];
+
+function ThemeToggle() {
+  const [light, setLight] = useState(false);
+  useEffect(() => {
+    const l = localStorage.getItem("xiosmp-theme") === "light";
+    setLight(l);
+    document.documentElement.classList.toggle("light", l);
+  }, []);
+  const flip = () => {
+    const l = !light;
+    setLight(l);
+    document.documentElement.classList.toggle("light", l);
+    localStorage.setItem("xiosmp-theme", l ? "light" : "dark");
+  };
+  return (
+    <button aria-label={light ? "Mode gelap" : "Mode terang"} onClick={flip} className="nm-btn p-2">
+      {light ? <Moon className="h-5 w-5 text-primary-glow" /> : <Sun className="h-5 w-5 text-primary-glow" />}
+    </button>
+  );
+}
 
 function Index() {
   const [open, setOpen] = useState(false);
@@ -219,6 +238,7 @@ function Index() {
             ))}
           </ul>
           <div className="flex shrink-0 items-center gap-2">
+            <ThemeToggle />
             <a href={DISCORD} target="_blank" rel="noreferrer" className="nm-btn-primary hidden px-4 py-2 text-sm font-semibold sm:inline-block">Join Discord</a>
             <button aria-label="Menu" onClick={() => setOpen(!open)} className="nm-btn p-2 lg:hidden">{open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}</button>
           </div>
@@ -321,7 +341,7 @@ function Index() {
       </Section>
 
       <Section id="sosial" title="Sosial Media" sub="Ikuti dan gabung komunitas XioSMP.">
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-6 sm:grid-cols-3">
           {socials.map((s) => (
             <a key={s.t} href={s.href} target="_blank" rel="noreferrer" className="nm-card reveal flex items-center gap-4 p-4">
               <div className="nm-inset grid h-12 w-12 shrink-0 place-items-center"><s.icon className="h-6 w-6 text-primary-glow" /></div>

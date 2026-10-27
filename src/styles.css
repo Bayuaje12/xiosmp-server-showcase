@@ -158,6 +158,25 @@
   --font-display: "Lilita One", cursive;
   --font-body: "Outfit", sans-serif;
 }
+html.light {
+  --background: oklch(0.93 0.012 300);
+  --foreground: oklch(0.22 0.03 300);
+  --card: oklch(0.93 0.012 300);
+  --card-foreground: oklch(0.22 0.03 300);
+  --popover: oklch(0.95 0.01 300);
+  --popover-foreground: oklch(0.22 0.03 300);
+  --primary: oklch(0.55 0.24 303);
+  --primary-glow: oklch(0.52 0.22 310);
+  --muted: oklch(0.89 0.015 300);
+  --muted-foreground: oklch(0.45 0.04 300);
+  --accent: oklch(0.88 0.03 300);
+  --accent-foreground: oklch(0.22 0.03 300);
+  --border: oklch(0.85 0.02 300);
+  --success: oklch(0.6 0.17 150);
+  --nm-dark: oklch(0.78 0.02 300);
+  --nm-light: oklch(1 0 0);
+}
+html { transition: background-color .4s ease, color .4s ease; }
 @theme inline {
   --color-primary-glow: var(--primary-glow);
   --color-success: var(--success);
